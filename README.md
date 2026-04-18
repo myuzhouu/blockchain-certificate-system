@@ -120,6 +120,9 @@ myproject
 │  ├─ 2587.sql
 │  └─ 2587-数据库说明.doc
 ├─ pom.xml
+├─ 使用说明.txt
+├─ 区块链使用说明.txt
+
 
 ```
 
@@ -268,7 +271,7 @@ src/main/java/com/code/utils/MyBlockchainUtils.java
 
 项目根目录中附带了区块链使用说明文件：
 
-- `区块链教客户使用.txt`
+- `区块链使用说明.txt`
 
 其中包含 Fabric 网络启动和链码查询的参考命令。
 
