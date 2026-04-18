@@ -1,0 +1,34 @@
+spring:
+  datasource: #数据库连接信息配置
+    url: jdbc:mysql://127.0.0.1:3308/2587?characterEncoding=utf-8&useSSL=false&serverTimezone=GMT
+    username: root       #mysql账号
+    password: root     #mysql密码
+    driver-class-name: com.mysql.jdbc.Driver #mysql5驱动
+    #driver-class-name: com.mysql.cj.jdbc.Driver #mysql8驱动
+  servlet:
+    multipart: #文件上传的配置
+      max-request-size: 120MB
+      max-file-size: 120MB
+  devtools: #解决 spring boot devtool 热部署后出现访问404问题
+    restart:
+      quiet-period: 2999ms
+      poll-interval: 3000ms
+
+
+# 数据库字段不要下划线转义
+mybatis-plus:
+  configuration:
+    # 禁止驼峰命名转换
+    map-underscore-to-camel-case: false
+
+
+mybatis: #mybatis配置
+  type-aliases-package: com.code.entity   #java实体类包
+  mapper-locations: classpath*mapper/*.xml  # mapper的xml文件位置
+# PageHelper 分页插件
+pagehelper:
+  reasonable: true # 如果分页时页码大于最大页数，它会自动调整
+  helperDialect: mysql # 选择你的数据库类型（如 MySQL）
+
+
+

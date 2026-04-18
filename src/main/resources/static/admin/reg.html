@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>注册</title>
+    <link rel="stylesheet" type="text/css" href="../static/layui/css/layui.css"/>
+    <link rel="stylesheet" type="text/css" href="../static/css/style.css"/>
+    <script src="../static/layui/layui.js"></script>
+    <script src="../static/js/vue.js"></script>
+    <script src="../static/js/axios.min.js"></script>
+    <script src="../request.js"></script>
+    <script src="../static/js/jquery-1.9.1.min.js"></script>
+    <script src="../static/js/common.js"></script>
+</head>
+<body style="background: url('../static/bg123.jpg');background-repeat: no-repeat; background-position: top left;background-size: cover;">
+<div class="main" id="app">
+    <div class="login">
+        <h1>管理员注册</h1>
+        <div class="inset">
+            <!--start-main-->
+            <form action="#" onsubmit="return false;" method="post">
+                <div>
+                    <h2>{{mySystemName}}</h2>
+                    <span><input type="text" placeholder="请输入用户名" value="" name="username" v-model="username" class="textbox"/></span>
+                </div>
+                <div>
+                    <span><input type="text" placeholder="请输入手机号" value="" name="password" v-model="phone" class="textbox"/></span>
+                </div>
+                <div>
+                    <span><input type="password" placeholder="请输入密码" value="" name="password" v-model="password" class="password"/></span>
+                </div>
+                <div>
+                    <span>
+                        <a href="../index.html">返回首页</a>
+                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <a href="login.html">返回登陆</a>
+                    </span>
+                </div>
+                <div class="sign">
+                    <input type="submit" @click="adminLogin()" value="注册" class="submit"/>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!--//end-main-->
+</div>
+
+<script>
+    //注意：导航 依赖 element 模块，否则无法进行功能性操作
+    var layer;
+    layui.use(['element', 'layer'], function () {
+        var element = layui.element;
+        layer = layui.layer;
+        //…
+    });
+
+    layui.use('form', function () {
+        var form = layui.form;
+
+        form.on('submit(formDemo)', function (data) {
+            layer.msg(JSON.stringify(data.field));
+            return false;
+        });
+    });
+    // 存储
+    var app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                mySystemName: "", //系统名称
+                codeImgURL: "", //验证码图片地址
+                code: "", //验证码
+                codeInput: "", //输入验证码
+                username: "",//用户登录信息存储
+                phone: "",//用户登录信息存储
+                role: "管理员",//用户登录信息存储
+                headimg: "http://www.javalm.cn/img/1.png",//用户登录信息存储
+                password: "",//用户登录信息存储
+                admincreatetime: getNowTime(),//用户登录信息存储
+            }
+        },
+        created() {
+            this.mySystemName = mySystemName; //加载系统名称
+            this.refreshCode();
+
+        },
+        mounted() {
+
+        },
+        updated() {
+
+        },
+        methods: {
+            refreshCode() {  //刷新验证码
+
+            },
+            adminLogin() {
+                if (this.username == "") {
+                    layer.msg("用户名不能为空");
+                    return false;
+                }
+                if (this.password == "") {
+                    layer.msg("密码不能为空");
+                    return false;
+                }
+                if (this.phone == "") {
+                    layer.msg("联系电话不能为空");
+                    return false;
+                }
+                var that = this;
+                var url = '/updateAction';
+                var obj = {
+                    user_id: 0,
+                    username: this.username,
+                    password: this.password,
+                    role: "个人用户",
+                    picurl: "http://www.javalm.cn/img/1.png",
+                    create_time: getNowTime(),
+                    phone: his.phone,
+                }  //对象信息
+                var data = {
+                    "sql": `insert into userinfo (user_id, username, password, role, picurl, create_time, phone)
+                            values ('${obj.user_id}', '${obj.username}', '${obj.password}', '${obj.role}', '${obj.picurl}', '${obj.create_time}', '${obj.phone}')`
+                }
+                post(url, data).then(response => {
+                    layer.msg("个人用户注册成功，即将返回登陆页面");  //弹窗提示
+                    setTimeout(function () {
+                        location.href = "login.html";
+                    }, 3000)
+                }).catch(err => {
+                    console.error(err);
+                });
+
+            },
+        }
+    });
+
+</script>
+</body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>房东信息列表页面</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" type="text/css" href="../static/layui/css/layui.css"/>
+    <script src="../static/layui/layui.js"></script>
+    <script src="../static/js/vue.js"></script>
+    <script src="../static/js/axios.min.js"></script>
+    <script src="../request.js"></script>
+    <script src="../static/js/jquery-1.9.1.min.js"></script>
+    <script src="../static/js/common.js"></script>
+</head>
+<body>
+<body>
+<div id="app">
+
+    <div class="layui-container" style="padding-top: 50px;">
+
+
+        <form class="layui-form  layui-form-pane" action="#" onsubmit="return false;" method="post"
+              style="margin: 0px auto;">
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">用户名</label>
+                <div class="layui-input-block">
+                    <input type="text" name="username" id="username" value="" v-model="objInfo.username" lay-verify autocomplete="off"
+                           placeholder="请输入用户名"
+                           class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">密码</label>
+                <div class="layui-input-block">
+                    <input type="text" name="password" id="password" value="" v-model="objInfo.password" lay-verify autocomplete="off"
+                           placeholder="请输入密码"
+                           class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item ">
+                <label class="layui-form-label">头像</label>
+                <div class="layui-input-block">
+                    <input id="myfile" type="file" name="myfile" style="display: none;"
+                           onchange="uploadFileUtil('myfile','picurl')">
+                    <input type="text" id="picurl" name="picurl" v-model="objInfo.picurl" lay-verify="required"
+                           placeholder="网路路径或者上传  如果是要上传，请点击后面的上传文件按钮"
+                           value="" class="layui-input" style="width: 80%;display: inline-block;"/>
+                    <span onclick="uploadFileUtilClick('myfile')" class="layui-btn"><i
+                            class="layui-icon layui-icon-upload"></i>上传文件</span>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">联系电话</label>
+                <div class="layui-input-block">
+                    <input type="text" name="phone" id="phone" value="" v-model="objInfo.phone" lay-verify autocomplete="off"
+                           placeholder="请输入联系电话"
+                           class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">用户角色</label>
+                <div class="layui-input-block">
+                    <input type="text" name="role" id="role" value="" v-model="objInfo.role" lay-verify autocomplete="off"
+                           placeholder="请输入用户角色"
+                           class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">认证状态</label>
+                <div class="layui-input-block">
+                    <input type="text" name="is_verified" id="is_verified" value="" v-model="objInfo.is_verified" lay-verify autocomplete="off"
+                           placeholder="请输入认证状态"
+                           class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button type="submit" class="layui-btn" @click="updateInfo($event)">立即提交</button>
+                </div>
+            </div>
+        </form>
+        <div style="height: 30px;"></div>
+    </div>
+
+
+</div>
+</body>
+
+
+<script>
+
+
+    //注意：导航 依赖 element 模块，否则无法进行功能性操作
+    var select1_val; //性别使用
+    var layer;
+    layui.use(['element', 'layer', "form"], function () {
+        var element = layui.element;
+        layer = layui.layer;
+        form = layui.form;
+        //…
+    });
+    layui.use('carousel', function () {
+        var carousel = layui.carousel;
+        //建造实例
+        carousel.render({
+            elem: '#test1'
+            , width: '100%' //设置容器宽度
+            , arrow: 'always' //始终显示箭头
+            //, anim: 'updown' //切换动画方式
+        });
+    });
+
+
+    var app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                loginAdmin: {},//用户登录信息存储
+                keyword: "",   //搜素关键词
+                pageNum: 1,   //分页页码
+                pageArr: [],   //分页页码数组
+                isDataShow: 1,   //1列表显示 2表单 3详情
+                myDataList: [],  //数据存储
+                objInfoBack: {},
+                objInfo: {}  //对象信息
+            }
+        },
+        created() {
+            this.getloginAdmin();
+            this.getSysteminfo();
+            this.getMyDataListList();
+        },
+        mounted() {
+
+        },
+        methods: {
+            getSysteminfo() { //加载系统配置
+                this.objInfoBack = {...this.objInfo}; //使用...赋值新变量， 对象和数组都适用
+            },
+            getloginAdmin() { //获取登录用户
+                if (sessionStorage.getItem('loginAdmin') != null) {
+                    this.loginAdmin = JSON.parse(sessionStorage.getItem('loginAdmin'));//获取登录信息
+                }
+            },
+            editInfo(index) { //编辑信息
+
+            },
+            addInfo(index) { //添加信息
+
+            },
+            backList(index) { //返回列表
+
+            },
+            updateInfo(e) { //修改信息
+                var that = this;
+                that.objInfo.headimg = document.getElementById("picurl").value;
+                var obj = that.objInfo;
+                var url = '/updateAction';
+                var data = {
+                    "sql": `  update userinfo
+                              set username = '${obj.username}',
+                                  password = '${obj.password}',
+                                  picurl = '${obj.picurl}',
+                                  phone = '${obj.phone}',
+                                  role = '${obj.role}',
+                                  is_verified = '${obj.is_verified}'
+                              where user_id = '${obj.user_id}'  `
+                }
+                post(url, data).then(response => {
+                    layer.msg("修改个人信息成功");  //弹窗提示
+                }).catch(err => {
+                    console.error(err);
+                });
+            },
+            deleteInfo(e) { //删除信息
+
+            },
+            detailInfo(index) { //显示详情
+
+            },
+            getMyDataListList() { //加载数据
+                var that = this;
+                var url = '/selectAction';
+                this.loginAdmin = JSON.parse(sessionStorage.getItem('loginAdmin'));//获取登录信息
+                var user_id = this.loginAdmin.user_id;
+                sql = ` select *
+                        from userinfo
+                        where user_id = '${user_id}' `;
+                var data = {"sql": sql};
+                post(url, data).then(response => {
+                    that.loginAdmin = response.data[0];
+                    that.objInfo = response.data[0];
+                }).catch(err => {
+                    console.error(err);
+                });
+            },
+            loadPageNum(e) {  //分页加载
+
+            },
+            mySearch() {  //搜索
+            },
+            countPageNums() {  //计算显示页码
+
+            },
+        }
+    });
+
+
+</script>
+
+<style>
+    body {
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+        background-attachment: fixed;
+        height: auto;
+    }
+
+    .layadmin-cmdlist-fluid {
+        background: rgba(255, 255, 255, 0.80);
+        margin-top: 0px;
+        padding-top: 30px;
+    }
+</style>
+</body>
+</html>

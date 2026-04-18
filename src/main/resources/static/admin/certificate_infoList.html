@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>列表页面</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" type="text/css" href="../static/layui/css/layui.css"/>
+    <script src="../static/layui/layui.js"></script>
+    <script src="../static/js/vue.js"></script>
+    <script src="../static/js/axios.min.js"></script>
+    <script src="../request.js"></script>
+    <script src="../static/js/jquery-1.9.1.min.js"></script>
+    <script src="../static/js/common.js"></script>
+</head>
+<body>
+<body>
+<div id="app">
+
+    <div class="layui-fluid" style="padding-top: 10px;">
+
+        <!--列表区域  //-->
+        <div id="dataShowDIV" v-show="isDataShow==1">
+            <table class="layui-table" lay-size="sm">
+                <tbody>
+                <tr class="layui-bg-blue">
+                    <th>证书号码</th>
+                    <th>用户姓名</th>
+                    <th>机构名称</th>
+                    <th>职称名称</th>
+                    <th>发证日期</th>
+                    <th>有效起始</th>
+                    <th>有效截止</th>
+                    <th>证书状态</th>
+                    <th>区块哈希</th>
+                    <th>操作</th>
+                </tr>
+
+                <tr v-for="(v,index) in myDataList">
+                    <td>{{v.cert_num}}</td>
+                    <td>{{v.user_name}}</td>
+                    <td>{{v.agency_name}}</td>
+                    <td>{{v.title_name}}</td>
+                    <td>{{v.issue_date}}</td>
+                    <td>{{v.valid_start}}</td>
+                    <td>{{v.valid_end}}</td>
+                    <td>{{v.cert_status}}</td>
+                    <td>{{v.block_hash}}</td>
+                    <td style="width: 220px;">
+                        <button @click="detailInfo(index)" :dataid="v.cert_num"
+                                class="layui-btn layui-btn-normal layui-btn-sm showDetail">详情
+                        </button>
+                    </td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <div style="height: 10px;"></div>
+            <!--分页导航  //-->
+        </div>
+        <!--列表区域  \\-->
+
+
+        <!--详情区域  //-->
+        <div id="detailDataDIV" class="layui-container" v-show="isDataShow==3">
+            <table class="layui-table">
+                <thead>
+                <tr>
+                    <td colspan="2">
+                        <button @click="backList($event)" class="layui-btn layui-btn-normal">返回列表</button>
+                    </td>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr>
+                    <td style="width:150px;">证书二维码</td>
+                    <td><img :src="'http://localhost:8088/'+objInfo.codeimg" style="min-width: 300px;"></td>
+                </tr>
+                <tr>
+                    <td style="width:150px;">证书号码</td>
+                    <td>{{objInfo.cert_num}}</td>
+                </tr>
+                <tr>
+                    <td style="width:150px;">用户姓名</td>
+                    <td>{{objInfo.user_name}}</td>
+                </tr>
+                <tr>
+                    <td style="width:150px;">机构名称</td>
+                    <td>{{objInfo.agency_name}}</td>
+                </tr>
+                <tr>
+                    <td style="width:150px;">职称名称</td>
+                    <td>{{objInfo.title_name}}</td>
+                </tr>
+                <tr>
+                    <td style="width:150px;">发证日期</td>
+                    <td>{{objInfo.issue_date}}</td>
+                </tr>
+                <tr>
+                    <td style="width:150px;">有效起始</td>
+                    <td>{{objInfo.valid_start}}</td>
+                </tr>
+                <tr>
+                    <td style="width:150px;">有效截止</td>
+                    <td>{{objInfo.valid_end}}</td>
+                </tr>
+                <tr>
+                    <td style="width:150px;">证书状态</td>
+                    <td>{{objInfo.cert_status}}</td>
+                </tr>
+                <tr>
+                    <td style="width:150px;">区块哈希</td>
+                    <td>{{objInfo.block_hash}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <!--详情区域  \\-->
+
+
+    </div>
+    <!--数据内容区域 //-->
+
+
+</div>
+</body>
+
+
+<script>
+
+
+    //注意：导航 依赖 element 模块，否则无法进行功能性操作
+    var select1_val; //性别使用
+    var layer;
+    layui.use(['element', 'layer', "form"], function () {
+        var element = layui.element;
+        layer = layui.layer;
+        form = layui.form;
+        //…
+    });
+    layui.use('carousel', function () {
+        var carousel = layui.carousel;
+        //建造实例
+        carousel.render({
+            elem: '#test1'
+            , width: '100%' //设置容器宽度
+            , arrow: 'always' //始终显示箭头
+            //, anim: 'updown' //切换动画方式
+        });
+    });
+
+    layui.use('form', function () {
+        var form = layui.form;
+        form.on("select(select01)", function (data) {
+            select1_val = data.value;
+        });
+
+    });
+
+    var app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                loginAdmin: {},//用户登录信息存储
+                keyword: "",   //搜素关键词
+                pageNum: 1,   //分页页码
+                pageArr: [],   //分页页码数组
+                isDataShow: 1,   //1列表显示 2表单 3详情
+                updateTypeNum: 1,   //1添加类型  2修改类型
+                myDataList: [],  //数据存储
+                objInfoBack: {},
+                objInfo: {
+                    证书编号: "",
+                    用户姓名: "",
+                    发证机构名称: "",
+                    职称名称: "",
+                    发证日期: "",
+                    有效期开始日期: "",
+                    有效期结束日期: "",
+                    证书状态: "",
+                    区块链哈希值: "",
+                }  //对象信息
+            }
+        },
+        created() {
+            this.getloginAdmin();
+            this.getSysteminfo();
+            this.getMyDataListList();
+        },
+        mounted() {
+
+        },
+        methods: {
+            getSysteminfo() { //加载系统配置
+                this.objInfoBack = {...this.objInfo}; //使用...赋值新变量， 对象和数组都适用
+            },
+            getloginAdmin() { //获取登录用户
+                if (sessionStorage.getItem('loginAdmin') != null) {
+                    this.loginAdmin = JSON.parse(sessionStorage.getItem('loginAdmin'));//获取登录信息
+                }
+            },
+            editInfo(index) { //编辑信息
+                var that = this;
+                that.objInfo = this.myDataList[index];
+                this.isDataShow = 2; //隐藏列表
+                this.updateTypeNum = 2; //修改类型
+            },
+            addInfo(index) { //添加信息
+                var that = this;
+                that.objInfo.证书编号 = 0; //清空编号
+                //that.objInfo.addtime = getNowTime(); //清空编号
+                this.isDataShow = 2; //隐藏列表
+                this.objInfo = {...this.objInfoBack};  //使用...赋值新变量， 对象和数组都适用
+            },
+            backList(index) { //返回列表
+                var that = this;
+                this.isDataShow = 1; //显示列表
+            },
+            updateInfo(e) { //修改信息
+
+            },
+            deleteInfo(e) { //删除信息
+
+            },
+            detailInfo(index) { //显示详情
+                var that = this;
+                that.objInfo = this.myDataList[index];
+                this.isDataShow = 3; //隐藏列表
+            },
+            getMyDataListList() { //加载数据
+                var that = this;
+                var url = '/blockchain/queryAll';
+                var keyword = this.keyword;
+                var data = {"sql": ""};
+                post(url, data).then(response => {
+                    that.myDataList = response.data;
+                }).catch(err => {
+                    console.error(err);
+                });
+            },
+            loadPageNum(e) {  //分页加载
+                var p = e.target.getAttribute('pnum');
+                this.pageNum = p;
+                this.getMyDataListList();
+            },
+            mySearch() {  //搜索
+                this.getMyDataListList();
+            },
+            countPageNums() {  //计算显示页码
+
+            },
+        }
+    });
+
+
+</script>
+
+<style>
+    body {
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+        background-attachment: fixed;
+        height: auto;
+    }
+
+    .layadmin-cmdlist-fluid {
+        background: rgba(255, 255, 255, 0.80);
+        margin-top: 0px;
+        padding-top: 30px;
+    }
+</style>
+</body>
+</html>

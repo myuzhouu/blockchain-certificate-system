@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>管理员登陆</title>
+    <link rel="stylesheet" type="text/css" href="../static/layui/css/layui.css"/>
+    <link rel="stylesheet" type="text/css" href="../static/css/style.css"/>
+    <script src="../static/layui/layui.js"></script>
+    <script src="../static/js/vue.js"></script>
+    <script src="../static/js/axios.min.js"></script>
+    <script src="../request.js"></script>
+    <script src="../static/js/jquery-1.9.1.min.js"></script>
+    <script src="../static/js/common.js"></script>
+</head>
+<body style="background: url('../static/bg123.jpg');background-repeat: no-repeat; background-position: top left;background-size: cover;">
+<div class="main" id="app">
+    <div class="login">
+        <h1>管理员登录</h1>
+        <div class="inset">
+            <!--start-main-->
+            <form action="#" onsubmit="return false;" method="post">
+                <div>
+                    <h2>基于区块链技术的职称证书共享系统</h2>
+                    <span><input type="text" placeholder="请输入用户名" value="admin" name="username" v-model="username" class="textbox"/></span>
+                </div>
+                <div>
+                    <span><input type="password" placeholder="请输入密码" value="123456" name="password" v-model="password" class="password"/></span>
+                </div>
+                <div>
+                    <label><input @click="selectRole('管理员')" type="radio" value="管理员" name="role" checked>管理员</label>
+                    <label><input @click="selectRole('个人用户')" type="radio" value="个人用户" name="role"> 个人用户</label>
+                    <label><input @click="selectRole('用人单位')" type="radio" value="用人单位" name="role"> 用人单位</label>
+                    <br>
+                    <br>
+                    <label><input @click="selectRole('发证机构')" type="radio" value="发证机构" name="role"> 发证机构</label>
+                    <label><input @click="selectRole('监管部门')" type="radio" value="监管部门" name="role"> 监管部门</label>
+                    <a href="reg.html" style="color: green">账号注册</a>
+                </div>
+                <div class="sign">
+                    <input type="submit" @click="adminLogin()" value="登录" class="submit"/>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!--//end-main-->
+</div>
+
+<script>
+    //注意：导航 依赖 element 模块，否则无法进行功能性操作
+    var layer;
+    layui.use(['element', 'layer'], function () {
+        var element = layui.element;
+        layer = layui.layer;
+        //…
+    });
+
+    layui.use('form', function () {
+        var form = layui.form;
+
+        form.on('submit(formDemo)', function (data) {
+            layer.msg(JSON.stringify(data.field));
+            return false;
+        });
+    });
+    // 存储
+    var app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                codeImgURL: "", //验证码图片地址
+                code: "", //验证码
+                role: "管理员", //验证码
+                codeInput: "", //输入验证码
+                username: "admin",//用户登录信息存储
+                password: "123456",//用户登录信息存储
+            }
+        },
+        created() {
+            this.refreshCode();
+
+        },
+        mounted() {
+
+        },
+        updated() {
+
+        },
+        methods: {
+            refreshCode() {  //刷新验证码
+
+            },
+            selectRole(role) {
+                this.role = role;
+            },
+            adminLogin() {
+                if (this.username == "") {
+                    layer.msg("用户名不能为空");
+                    return false;
+                }
+                if (this.password == "") {
+                    layer.msg("密码不能为空");
+                    return false;
+                }
+                var url = '/selectAction';
+                var username = this.username;
+                var password = this.password;
+                var role = this.role;
+                var data = {
+                    "sql": `select *
+                            from userinfo
+                            where username = '${username}'
+                              and password = '${password}'
+                              and role = '${role}'
+                    `
+
+                };
+                post(url, data).then(response => {
+                    if (response.status == 200) {
+                        if (response.data.length > 0) {
+                            var admin = response.data[0];
+                            sessionStorage.setItem("loginAdmin", JSON.stringify(response.data[0]));
+                            localStorage.setItem("loginAdmin", JSON.stringify(response.data[0]));
+                            layer.msg('恭喜你，' + admin.role + '登录成功', {
+                                offset: '15px'
+                                , icon: 1
+                            }, function () {
+                                window.location.href = "mainPage.html";
+                            });
+                        } else {
+                            layer.alert("登陆账号或者密码错误");
+                        }
+                    } else {
+                        layer.alert(response.msg);
+                    }
+                }).catch(err => {
+                    console.log(err);
+                });
+            },
+        }
+    });
+
+</script>
+</body>
+</html>

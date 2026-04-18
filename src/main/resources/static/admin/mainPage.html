@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>系统首页</title>
+    <link rel="stylesheet" type="text/css" href="../static/layui/css/layui.css"/>
+    <script src="../static/layui/layui.js"></script>
+    <script src="../static/js/vue.js"></script>
+    <script src="../static/js/axios.min.js"></script>
+    <script src="../request.js"></script>
+    <script>
+        if (sessionStorage.getItem('loginAdmin') == null) {
+            alert("登录以后才可以访问系统");
+            window.location.href = "login.html";
+        }
+    </script>
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin" id="app">
+    <div class="layui-header">
+        <div class="layui-logo">管理系统后台</div>
+        <!-- 头部区域（可配合layui已有的水平导航） -->
+        <ul class="layui-nav layui-layout-left">
+            <li class="layui-nav-item">
+                <h3 style="text-align: center;text-align: center">基于区块链技术的职称证书共享系统</h3>
+            </li>
+            <li class="layui-nav-item" v-show="loginAdmin.role=='管理员'">
+                <a href="#" @click="joinDate"><i class="layui-icon layui-icon-home"></i>区块链初始化</a>
+            </li>
+            <li class="layui-nav-item">
+                <a href="certificate_infoList.html" target="tqmContent"><i class="layui-icon layui-icon-home"></i>区块链证书查询</a>
+            </li>
+        </ul>
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item">
+                <a href="javascript:;">
+                    <img :src="loginAdmin.picurl" class="layui-nav-img">
+                    {{ loginAdmin.username }}【{{ loginAdmin.role }}】
+                </a>
+                <dl class="layui-nav-child">
+                    <dd><a href="person.html"
+                           target="tqmContent">修改密码</a></dd>
+                    <dd><a href="../index.html">退出登录</a>
+                    </dd>
+                </dl>
+
+            </li>
+        </ul>
+    </div>
+
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+
+            <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+            <ul class="layui-nav layui-nav-tree" lay-filter="test">
+
+                <li class="layui-nav-item">
+                    <a href="javascript:;">用户信息管理</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="userinfoList.html" target="tqmContent">用户信息列表</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item" v-show="loginAdmin.role=='管理员' || loginAdmin.role=='用人单位' ">
+                    <a href="javascript:;">单位信息管理</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="employerList.html" target="tqmContent">单位信息列表</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item" v-show="loginAdmin.role=='管理员' || loginAdmin.role=='个人用户' ">
+                    <a href="javascript:;">个人用户管理</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="individual_userList.html" target="tqmContent">个人用户列表</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item" v-show="loginAdmin.role=='管理员' || loginAdmin.role=='发证机构' ">
+                    <a href="javascript:;">机构信息管理</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="issuing_agencyList.html" target="tqmContent">机构信息列表</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item" v-show="loginAdmin.role=='管理员' || loginAdmin.role=='监管部门' ">
+                    <a href="javascript:;">监管部门管理</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="regulatory_departmentList.html" target="tqmContent">监管部门列表</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item" v-show="loginAdmin.role=='管理员' || loginAdmin.role=='监管部门' ">
+                    <a href="javascript:;">监管记录管理</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="regulatory_recordList.html" target="tqmContent">监管记录列表</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item" v-show="loginAdmin.role=='管理员' || loginAdmin.role=='监管部门' ">
+                    <a href="javascript:;">证书共享记录管理</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="sharing_recordList.html" target="tqmContent">证书共享记录列表</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item" v-show="loginAdmin.role=='管理员' || loginAdmin.role=='发证机构' || loginAdmin.role=='监管部门' ">
+                    <a href="javascript:;">职称证书管理</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="title_certificateList.html" target="tqmContent">职称证书列表</a></dd>
+                    </dl>
+                </li>
+
+
+            </ul>
+        </div>
+    </div>
+
+    <div class="layui-body">
+        <!-- 内容主体区域 -->
+        <!-- 内容主体区域 -->
+        <div style="padding: 0px;height: 100%;width: 100%;">
+            <iframe src="person.html" name="tqmContent"
+                    style="border: 0px solid blue;height: 100%;width: 100%;scrolling:auto;">
+            </iframe>
+        </div>
+    </div>
+
+    <div class="layui-footer">
+        <!-- 底部固定区域 -->
+        基于区块链技术的职称证书共享系统 - 底部版权区域
+    </div>
+</div>
+</body>
+
+
+<script>
+
+
+    //注意：导航 依赖 element 模块，否则无法进行功能性操作
+    var layer;
+    layui.use(['element', 'layer'], function () {
+        var element = layui.element;
+        layer = layui.layer;
+        //…
+    });
+
+
+    // 存储
+    var app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                loginAdmin: {},//用户登录信息存储
+                myDataList: []  //数据存储
+            }
+        },
+        created() {
+            this.getSysteminfo();
+            this.getLoginUserinfo();
+        },
+        mounted() {
+
+        },
+        updated() {
+
+        },
+        methods: {
+            getSysteminfo() { //加载系统配置
+
+            },
+            joinDate() {
+                var that = this;
+                var url = ctx + '/blockchain/join';
+                var data = {"sql": ""};
+                post(url, data).then(response => {
+                    alert("正在提交评审记录到区块链，请耐心等待");
+                }).catch(err => {
+                    console.error(err);
+                });
+            },
+            getLoginUserinfo() { //获取登录用户
+                if (localStorage.getItem('loginAdmin') != null) {
+                    this.loginAdmin = JSON.parse(localStorage.getItem('loginAdmin'));//获取登录信息
+                    console.log(this.loginAdmin)
+                }
+            },
+            getMyDataListList() { //加载系统配置
+
+            },
+
+
+        }
+    });
+
+
+</script>
+
+</html>

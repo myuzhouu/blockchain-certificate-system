@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>用户账号列表页面</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" type="text/css" href="../static/layui/css/layui.css"/>
+    <script src="../static/layui/layui.js"></script>
+    <script src="../static/js/vue.js"></script>
+    <script src="../static/js/axios.min.js"></script>
+    <script src="../request.js"></script>
+    <script src="../static/js/jquery-1.9.1.min.js"></script>
+    <script src="../static/js/common.js"></script>
+</head>
+<body>
+<body>
+<div id="app">
+
+    <div class="layui-fluid" style="padding-top: 10px;">
+
+        <!--列表区域  //-->
+        <div id="dataShowDIV" v-show="isDataShow==1">
+            <div class="mainTop layui-clear" style="text-align: center">
+                <div class="fr">
+                    <form class="layui-form" action="#" onsubmit="return false;" method="post">
+                        <div class="layui-form-item">
+                            <div class="layui-inline" style="text-align: left;">
+                                <div class="layui-input-inline">
+                                    <input type="text" class="layui-input dateIcon" name="keyword" id="keyword"
+                                           v-model="keyword"
+                                           placeholder="请输入关键词"
+                                           style="width: 200px;">
+                                </div>
+                                <div class="layui-input-inline">
+                                    <button @click="mySearch()" type="submit" class="layui-btn layui-btn-blue"><i
+                                            class="layui-icon layui-icon-search"></i> 搜索
+                                    </button>
+                                </div>
+                                <div v-show="loginAdmin.role=='管理员'" class="layui-input-inline">
+                                    <button @click="addInfo($event)" class="layui-btn layui-btn-normal">
+                                        <i class="layui-icon layui-icon-add-1"></i>添加数据
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+            <table class="layui-table" lay-size="sm">
+                <tbody>
+                <tr class="layui-bg-blue">
+                    <th>用户编号</th>
+                    <th>登录账号</th>
+                    <th>登录密码</th>
+                    <th>用户角色</th>
+                    <th>用户头像</th>
+                    <th>创建时间</th>
+                    <th>联系电话</th>
+                    <th>操作</th>
+                </tr>
+
+                <tr v-for="(v,index) in myDataList.records">
+                    <td>{{index + 1}}</td>
+                    <td>{{v.username}}</td>
+                    <td>{{v.password}}</td>
+                    <td>{{v.role}}</td>
+                    <td><img :src="v.picurl" style="max-width: 50px;"></td>
+                    <td>{{v.create_time}}</td>
+                    <td>{{v.phone}}</td>
+                    <td style="width: 220px;">
+                        <a v-show="loginAdmin.role=='管理员'" href="#" @click="editInfo(index)"
+                           class="layui-btn  layui-btn-sm">修改</a>
+                        <a v-show="loginAdmin.role=='管理员'" href="#" @click="deleteInfo($event)" :deleteid="v.user_id"
+                           class="layui-btn layui-btn-danger layui-btn-sm">删除</a>
+                        <button @click="detailInfo(index)" :dataid="v.user_id"
+                                class="layui-btn layui-btn-normal layui-btn-sm showDetail">详情
+                        </button>
+                    </td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+            <!--分页导航  \\-->
+            <div style="text-align: center">
+                <div class="layui-btn-group">
+                    <button pnum="1" @click="loadPageNum($event)" class="layui-btn layui-btn-primary layui-btn-sm">首页
+                    </button>
+                    <button v-if="myDataList.current>1" :pnum="myDataList.current-1" @click="loadPageNum($event)"
+                            class="layui-btn layui-btn-primary layui-btn-sm">上一页
+                    </button>
+                    <button v-for="(k,index) in pageArr" :pnum="k"
+                            @click="loadPageNum($event)"
+                            class="layui-btn  layui-btn-primary layui-btn-sm"
+                            :style="myDataList.current==k ? {backgroundColor: '#009688',color:'#fff'} : {}">{{k}}
+                    </button>
+
+                    <button v-if="myDataList.current<myDataList.pages" :pnum="myDataList.current+1"
+                            @click="loadPageNum($event)"
+                            class="layui-btn layui-btn-primary layui-btn-sm">下一页
+                    </button>
+                    <button :pnum="myDataList.pages" @click="loadPageNum($event)"
+                            class="layui-btn layui-btn-primary layui-btn-sm">尾页
+                    </button>
+                    <button class="layui-btn layui-btn-primary layui-btn-sm">共{{myDataList.total}}条记录</button>
+                </div>
+            </div>
+
+            <div style="height: 10px;"></div>
+            <!--分页导航  //-->
+        </div>
+        <!--列表区域  \\-->
+
+        <!--表单区域 //-->
+        <div id="formDataDIV" class="layui-container" v-show="isDataShow==2">
+            <form class="layui-form  layui-form-pane" action="#" onsubmit="return false;" method="post"
+                  style="margin: 0px auto;">
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">登录账号</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="username" id="username" value="" v-model="objInfo.username" lay-verify autocomplete="off"
+                               placeholder="请输入登录账号"
+                               class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">登录密码</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="password" id="password" value="" v-model="objInfo.password" lay-verify autocomplete="off"
+                               placeholder="请输入登录密码"
+                               class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">用户角色</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="role" id="role" value="" v-model="objInfo.role" lay-verify autocomplete="off"
+                               placeholder="请输入用户角色"
+                               class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item ">
+                    <label class="layui-form-label">用户头像</label>
+                    <div class="layui-input-block">
+                        <input id="myfile" type="file" name="myfile" style="display: none;"
+                               onchange="uploadFileUtil('myfile','picurl')">
+                        <input type="text" id="picurl" name="picurl" v-model="objInfo.picurl" lay-verify="required"
+                               placeholder="网路路径或者上传  如果是要上传，请点击后面的上传文件按钮"
+                               value="" class="layui-input" style="width: 80%;display: inline-block;"/>
+                        <span onclick="uploadFileUtilClick('myfile')" class="layui-btn"><i
+                                class="layui-icon layui-icon-upload"></i>上传文件</span>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">创建时间</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="create_time" id="create_time" value="" v-model="objInfo.create_time" lay-verify autocomplete="off"
+                               placeholder="请输入创建时间"
+                               class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">联系电话</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="phone" id="phone" value="" v-model="objInfo.phone" lay-verify autocomplete="off"
+                               placeholder="请输入联系电话"
+                               class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <button type="submit" class="layui-btn" @click="updateInfo($event)">立即提交</button>
+                        <button @click="backList($event)" class="layui-btn layui-btn-normal">返回列表</button>
+                    </div>
+                </div>
+            </form>
+            <div style="height: 30px;"></div>
+        </div>
+        <!--表单区域 \\-->
+
+        <!--详情区域  //-->
+        <div id="detailDataDIV" class="layui-container" v-show="isDataShow==3">
+            <table class="layui-table">
+                <thead>
+                <tr>
+                    <td colspan="2">
+                        <button @click="backList($event)" class="layui-btn layui-btn-normal">返回列表</button>
+                    </td>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr>
+                    <td style="width:150px;">用户编号</td>
+                    <td>{{objInfo.user_id}}</td>
+                </tr>
+                <tr>
+                    <td style="width:150px;">登录账号</td>
+                    <td>{{objInfo.username}}</td>
+                </tr>
+                <tr>
+                    <td style="width:150px;">登录密码</td>
+                    <td>{{objInfo.password}}</td>
+                </tr>
+                <tr>
+                    <td style="width:150px;">用户角色</td>
+                    <td>{{objInfo.role}}</td>
+                </tr>
+                <tr>
+                    <td style="width:150px;">用户头像</td>
+                    <td><img :src="objInfo.picurl" style="min-width: 300px;"></td>
+                </tr>
+                <tr>
+                    <td style="width:150px;">创建时间</td>
+                    <td>{{objInfo.create_time}}</td>
+                </tr>
+                <tr>
+                    <td style="width:150px;">联系电话</td>
+                    <td>{{objInfo.phone}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <!--详情区域  \\-->
+
+
+    </div>
+    <!--数据内容区域 //-->
+
+
+</div>
+</body>
+
+
+<script>
+
+
+    //注意：导航 依赖 element 模块，否则无法进行功能性操作
+    var select1_val; //性别使用
+    var layer;
+    layui.use(['element', 'layer', "form"], function () {
+        var element = layui.element;
+        layer = layui.layer;
+        form = layui.form;
+        //…
+    });
+    layui.use('carousel', function () {
+        var carousel = layui.carousel;
+        //建造实例
+        carousel.render({
+            elem: '#test1'
+            , width: '100%' //设置容器宽度
+            , arrow: 'always' //始终显示箭头
+            //, anim: 'updown' //切换动画方式
+        });
+    });
+
+    layui.use('form', function () {
+        var form = layui.form;
+        form.on("select(select01)", function (data) {
+            select1_val = data.value;
+        });
+
+    });
+
+    var app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                loginAdmin: {},//用户登录信息存储
+                keyword: "",   //搜素关键词
+                pageNum: 1,   //分页页码
+                pageArr: [],   //分页页码数组
+                isDataShow: 1,   //1列表显示 2表单 3详情
+                updateTypeNum: 1,   //1添加类型  2修改类型
+                myDataList: [],  //数据存储
+                objInfoBack: {},
+                objInfo: {
+                    user_id: 0,
+                    username: "",
+                    password: "",
+                    role: "",
+                    picurl: "",
+                    create_time: "",
+                    phone: "",
+                }  //对象信息
+            }
+        },
+        created() {
+            this.getloginAdmin();
+            this.getSysteminfo();
+            this.getMyDataListList();
+        },
+        mounted() {
+
+        },
+        methods: {
+            getSysteminfo() { //加载系统配置
+                this.objInfoBack = {...this.objInfo}; //使用...赋值新变量， 对象和数组都适用
+            },
+            getloginAdmin() { //获取登录用户
+                if (sessionStorage.getItem('loginAdmin') != null) {
+                    this.loginAdmin = JSON.parse(sessionStorage.getItem('loginAdmin'));//获取登录信息
+                }
+            },
+            editInfo(index) { //编辑信息
+                var that = this;
+                that.objInfo = this.myDataList.records[index];
+                this.isDataShow = 2; //隐藏列表
+                this.updateTypeNum = 2; //修改类型
+            },
+            addInfo(index) { //添加信息
+                var that = this;
+                that.objInfo.user_id = 0; //清空编号
+                //that.objInfo.addtime = getNowTime(); //清空编号
+                this.isDataShow = 2; //隐藏列表
+                this.objInfo = {...this.objInfoBack};  //使用...赋值新变量， 对象和数组都适用
+                this.objInfo.create_time = getNowTime();
+            },
+            backList(index) { //返回列表
+                var that = this;
+                this.isDataShow = 1; //显示列表
+            },
+            updateInfo(e) { //修改信息
+                var that = this;
+                that.objInfo.picurl = document.getElementById("picurl").value;
+                var obj = that.objInfo;
+                var url = '/updateAction';
+                var data = {
+                    "sql": `insert into userinfo (user_id, username, password, role, picurl, create_time, phone)
+                            values ('${obj.user_id}', '${obj.username}', '${obj.password}', '${obj.role}', '${obj.picurl}', '${obj.create_time}', '${obj.phone}')`
+                }
+                if (this.updateTypeNum == 2) {  //存在编号则修改
+                    var data = {
+                        "sql": `  update userinfo
+                                  set username    = '${obj.username}',
+                                      password    = '${obj.password}',
+                                      role        = '${obj.role}',
+                                      picurl      = '${obj.picurl}',
+                                      create_time = '${obj.create_time}',
+                                      phone       = '${obj.phone}'
+                                  where user_id = '${obj.user_id}'  `
+                    }
+                }
+                post(url, data).then(response => {
+                    that.getMyDataListList();//加载列表
+                    layer.msg("操作成功");  //弹窗提示
+                    that.isDataShow = 1; //隐藏列表
+                    this.updateTypeNum = 1; //修改为添加类型
+                }).catch(err => {
+                    console.error(err);
+                });
+            },
+            deleteInfo(e) { //删除信息
+                var that = this;
+                var deleteid = e.target.getAttribute('deleteid');
+                var url = '/updateAction';
+                var data = {
+                    "sql": `delete
+                            from userinfo
+                            where user_id = '${deleteid}' `
+                }
+                post(url, data).then(response => {
+                    that.getMyDataListList();
+                    layer.msg("刪除成功");
+
+                }).catch(err => {
+                    console.error(err);
+                });
+            },
+            detailInfo(index) { //显示详情
+                var that = this;
+                that.objInfo = this.myDataList.records[index];
+                this.isDataShow = 3; //隐藏列表
+            },
+            getMyDataListList() { //加载数据
+                var that = this;
+                var url = '/selectPageAction';
+                var keyword = this.keyword;
+                sql = ` select *
+                        from userinfo  `;
+                if (keyword != '') {
+                    that.pageNum = 1;
+                    sql = `select *
+                           from userinfo
+                           where username like '%${keyword}%'  `;
+                }
+                var data = {"sql": sql, "p": this.pageNum};
+                post(url, data).then(response => {
+                    that.myDataList = response.data;
+                    this.countPageNums(); //计算页码
+                }).catch(err => {
+                    console.error(err);
+                });
+            },
+            loadPageNum(e) {  //分页加载
+                var p = e.target.getAttribute('pnum');
+                this.pageNum = p;
+                this.getMyDataListList();
+            },
+            mySearch() {  //搜索
+                this.getMyDataListList();
+            },
+            countPageNums() {  //计算显示页码
+                var startNum = 1;
+                var endNum = this.myDataList.pages;
+                if (this.myDataList.current - 3 > 1) {
+                    startNum = this.myDataList.current - 3;
+                }
+                if (this.myDataList.current + 3 < this.myDataList.pages) {
+                    endNum = this.myDataList.current + 3;
+                }
+                var pageArr = [];
+                for (let i = startNum; i <= endNum; i++) {
+                    pageArr.push(i);
+                }
+                this.pageArr = pageArr;
+            },
+        }
+    });
+
+
+</script>
+
+<style>
+    body {
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+        background-attachment: fixed;
+        height: auto;
+    }
+
+    .layadmin-cmdlist-fluid {
+        background: rgba(255, 255, 255, 0.80);
+        margin-top: 0px;
+        padding-top: 30px;
+    }
+</style>
+</body>
+</html>

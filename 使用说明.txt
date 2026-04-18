@@ -1,0 +1,24 @@
+基于区块链技术的职称证书共享系统 的设计与实现
+代码编号： 2587
+
+测试账号
+    管理员 admin  123456
+    个人用户 user01  123456
+    用人单位 org01  123456
+    agency01 org01  123456
+    dept01 org01  123456
+
+
+【技术栈】
+    后端：Java语言 Springboot + MybatisPlus 框架
+    前端：vue + html + css + js
+    区块链技术：Hyperledger Fabric区块链技术平台
+    虚拟机：Ubuntu 64 位【安装好Fabric并且可用】
+    开发工具： idea + VMware  + MySQL
+
+【如果不会运行，可以找我们远程帮助调试运行】
+    1、代码也有详细注释（详细说明）
+    2、可以进行二次修改或者功能添加删除
+
+
+
